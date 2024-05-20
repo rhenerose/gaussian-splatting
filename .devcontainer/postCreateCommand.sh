@@ -87,3 +87,6 @@ popd
 
 apt install -y --no-install-recommends ffmpeg imagemagick
 ln -s /usr/bin/convert /usr/local/bin/magick
+
+# clean up
+apt-get clean && rm -rf /var/lib/apt/lists/*

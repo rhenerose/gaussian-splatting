@@ -1,0 +1,17 @@
+dataset/
+output/
+
+# Ignore Ninja build files
+build.ninja
+*.ninja
+build/
+extlibs/
+install/
+src/projects/*
+cmake-gui.exe.stackdump
+
+
+# Ignore Python package build files
+*.egg-info/
+dist/
+__pycache__/

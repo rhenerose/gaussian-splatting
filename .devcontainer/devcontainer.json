@@ -5,11 +5,16 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	// "image": "nvidia/cuda:12.4.1-devel-ubuntu22.04",
 	// "image": "nvidia/cuda:11.8.0-devel-ubuntu22.04",
-	"image": "pytorch/pytorch:2.3.0-cuda12.1-cudnn8-devel",
+	// "image": "pytorch/pytorch:2.3.0-cuda12.1-cudnn8-devel",
 	// "image": "pytorch/pytorch:2.3.0-cuda11.8-cudnn8-devel",
+	// "image": "gaussian-splatting",
+	"build":{
+		"dockerfile": "Dockerfile",
+		"context": "..",
+	},
 	"runArgs": [
 		"--gpus=all"
-	]
+	],
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -18,7 +23,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "uname -a",
+	// "postCreateCommand": "/bin/bash ./.devcontainer/postCreateCommand.sh"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
