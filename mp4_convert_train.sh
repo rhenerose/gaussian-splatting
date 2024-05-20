@@ -7,25 +7,31 @@ mp4_file=$2
 
 usage() {
     echo "Usage: $0 <dataset_dir> <mp4_file>"
-    echo "Example: $0 ./dataset ./data/input.mp4"
-    echo "       : $0 ./dataset (<-- search mp4 file in the dataset directory)"
+    echo "Example: $0 ./dataset ./data/video.mp4"
+    echo "       : $0 ./dataset \"./data/video.mp4;./data/video2.mp4\"  # multiple mp4 files"
+    echo "       : $0 ./dataset                                       # search mp4 file in the dataset directory"
 }
 
 # Check if the dataset directory exists
 if [ ! -d "$dataset_dir" ]; then
     echo "Directory '$dataset_dir' does not exist"
-    usage
-    exit 1
+    mkdir -p "$dataset_dir"
+    # exit 1
 fi
 
 # Check mp4 file in the dataset directory
 if [ -z "$mp4_file" ]; then
     echo "Searching for mp4 file in $dataset_dir"
-    mp4_file=$(find "$dataset_dir" -name "*.mp4" -print -quit)
-    echo "find '$mp4_file'"
+    mp4_file=""
+    for video_file in "$dataset_dir"/*.mp4
+    do
+        mp4_file="$mp4_file$video_file;"
+        echo "find '$video_file'"
+    done
+    # Remove the last semicolon
+    mp4_file=${mp4_file%;}
     sleep 5
 fi
-
 # Check arguments
 if [ -z "$dataset_dir" ] || [ -z "$mp4_file" ]; then
     echo "Invalid arguments"
@@ -33,25 +39,40 @@ if [ -z "$dataset_dir" ] || [ -z "$mp4_file" ]; then
     exit 1
 fi
 
-if [ ! -f "$mp4_file" ]; then
-    echo "File '$mp4_file' does not exist"
-    exit 1
-fi
+# if [ ! -f "$mp4_file" ]; then
+#     echo "File '$mp4_file' does not exist"
+#     exit 1
+# fi
 
 # Convert mp4 to images
 echo "Converting $mp4_file to images in $dataset_dir"
-mkdir -p "$dataset_dir/input"
-rm -rf "$dataset_dir/input/*"
 
-# Get the width of the video
-width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$mp4_file")
-if [ "$width" -gt 1600 ]; then
-    # If the width is greater than 1600, resize the width to 1600
-    ffmpeg -i "$mp4_file" -r 2 -vf "scale=1600:-1" "$dataset_dir/input/image_%05d.jpg"
-else
-    ffmpeg -i "$mp4_file" -r 2 "$dataset_dir/input/image_%05d.jpg"
+# Remove the directory if it exists
+if [ -d "$dataset_dir/input/$videoname" ]; then
+    rm -rf "$dataset_dir/input/$videoname"
 fi
+mkdir -p "$dataset_dir/input/$videoname"
 
+
+
+# Convert the string to an array
+OLDIFS=$IFS
+IFS=';'
+set -- $mp4_file
+IFS=$OLDIFS
+for video_file
+do
+    echo "Processing $video_file"
+    # Get the width of the video
+    width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$video_file")
+    videoname=$(basename "$video_file" .mp4)
+    if [ "$width" -gt 1600 ]; then
+        # If the width is greater than 1600, resize the width to 1600
+        ffmpeg -i "$video_file" -r 2 -vf "scale=1600:-1" "$dataset_dir/input/image $videoname %05d.jpg"
+    else
+        ffmpeg -i "$video_file" -r 2 "$dataset_dir/input/image $videoname %05d.jpg"
+    fi
+done
 
 # convert images to dataset
 echo create colmap dataset
