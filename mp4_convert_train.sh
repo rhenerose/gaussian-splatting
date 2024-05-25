@@ -48,10 +48,10 @@ fi
 echo "Converting $mp4_file to images in $dataset_dir"
 
 # Remove the directory if it exists
-if [ -d "$dataset_dir/input/$videoname" ]; then
-    rm -rf "$dataset_dir/input/$videoname"
+if [ -d "$dataset_dir/input/" ]; then
+    rm -rf "$dataset_dir/input/"
 fi
-mkdir -p "$dataset_dir/input/$videoname"
+mkdir -p "$dataset_dir/input/"
 
 
 
@@ -66,11 +66,18 @@ do
     # Get the width of the video
     width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$video_file")
     videoname=$(basename "$video_file" .mp4)
+
+    # Remove the directory if it exists
+    if [ -d "$dataset_dir/input/$videoname" ]; then
+        rm -rf "$dataset_dir/input/$videoname"
+    fi
+    mkdir -p "$dataset_dir/input/$videoname"
+
     if [ "$width" -gt 1600 ]; then
         # If the width is greater than 1600, resize the width to 1600
-        ffmpeg -i "$video_file" -r 2 -vf "scale=1600:-1" "$dataset_dir/input/image $videoname %05d.jpg"
+        ffmpeg -i "$video_file" -r 2 -vf "scale=1600:-1" "$dataset_dir/input/$videoname/image_${videoname}_%05d.jpg"
     else
-        ffmpeg -i "$video_file" -r 2 "$dataset_dir/input/image $videoname %05d.jpg"
+        ffmpeg -i "$video_file" -r 2 "$dataset_dir/input/$videoname/image_${videoname}_%05d.jpg"
     fi
 done
 
