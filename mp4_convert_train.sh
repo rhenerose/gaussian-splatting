@@ -83,8 +83,8 @@ done
 
 # convert images to dataset
 echo create colmap dataset
-echo convert.py -s "$dataset_dir" --resize
-python3 convert.py -s "$dataset_dir" --resize
+echo convert.sh "$dataset_dir"
+/bin/sh convert.sh "$dataset_dir"
 
 # train gaussian splatting
 echo train gaussian splatting
