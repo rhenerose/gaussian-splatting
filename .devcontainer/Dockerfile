@@ -9,6 +9,9 @@ ARG PYTORCH_CUDA_VERSION=12.1
 FROM nvidia/cuda:${NVIDIA_CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} as builder
 # FROM pytorch/pytorch:${PYTORCH_VERSION}-cuda${PYTORCH_CUDA_VERSION}-cudnn8-devel AS builder
 
+ARG PYTORCH_VERSION
+ARG PYTORCH_CUDA_VERSION
+
 ARG COLMAP_GIT_COMMIT=main
 # ARG CUDA_ARCHITECTURES=native
 ARG CUDA_ARCHITECTURES="60;70;80"
@@ -80,7 +83,7 @@ RUN cd /work/gaussian-splatting/SIBR_viewers && \
 RUN apt-get install -y --no-install-recommends --no-install-suggests \
     python3-dev python3-pip
 RUN python3 -m pip install --no-cache plyfile pillow tqdm
-RUN python3 -m pip install --no-cache torch --index-url https://download.pytorch.org/whl/cu121
+RUN python3 -m pip install --no-cache torch==${PYTORCH_VERSION} --index-url https://download.pytorch.org/whl/cu$(echo ${PYTORCH_CUDA_VERSION} | tr -d '.')
 
 # ARG TORCH_CUDA_ARCH_LIST="7.0;8.0;8.6+PTX"
 ARG TORCH_CUDA_ARCH_LIST="5.0;6.0;6.1;7.0;7.5;8.0;8.6+PTX"
@@ -104,6 +107,9 @@ FROM nvidia/cuda:${NVIDIA_CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION} as runti
 # Note: this reduces the size of the final image considerably, since all the
 # build dependencies are not needed.
 ENV DEBIAN_FRONTEND=noninteractive
+ARG PYTORCH_VERSION
+ARG PYTORCH_CUDA_VERSION
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends --no-install-suggests \
         libboost-filesystem1.74.0 \
@@ -126,7 +132,12 @@ RUN apt-get update && \
         python3 \
         python3-pip
 
-RUN python3 -m pip install --no-cache torch plyfile pillow tqdm
+RUN python3 -m pip install --no-cache plyfile pillow tqdm
+RUN python3 -m pip install --no-cache \
+        torch==${PYTORCH_VERSION} \
+        torchvision \
+        torchaudio \
+        --index-url https://download.pytorch.org/whl/cu$(echo ${PYTORCH_CUDA_VERSION} | tr -d '.')
 
 # Copy COLMAP
 COPY --from=builder /colmap_installed/ /usr/local/colmap
