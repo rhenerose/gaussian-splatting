@@ -32,4 +32,37 @@ for file in $dataset_dir/sparse/*; do
     fi
 done
 
+# resize images
+mkdir -p $dataset_dir/images_2
+mkdir -p $dataset_dir/images_4
+mkdir -p $dataset_dir/images_8
+
+resize_process_directory() {
+    for file in "$1"/*; do
+        if [ -d "$file" ]; then
+            resize_process_directory "$file"
+        else
+            echo $file
+            dir_name=$(dirname "$file")
+            subdir_name=${dir_name#$dataset_dir/images}
+            if [ "$subdir_name" = "" ]; then
+                subdir_name="."
+            else
+                mkdir -p $dataset_dir/images_2/$subdir_name
+                mkdir -p $dataset_dir/images_4/$subdir_name
+                mkdir -p $dataset_dir/images_8/$subdir_name
+            fi
+
+            # resize images use ImageMagick
+            convert ${file}[50%] -write \
+                mpr:thumb -write $dataset_dir/images_2/$subdir_name/$(basename $file) +delete \
+                mpr:thumb -resize 50% -write mpr:thumb -write $dataset_dir/images_4/$subdir_name/$(basename $file) +delete \
+                mpr:thumb -resize 50% $dataset_dir/images_8/$subdir_name/$(basename $file)
+        fi
+    done
+}
+
+resize_process_directory $dataset_dir/images
+
+
 # python3 train.py -s $dataset_dir -m ./output/$(basename $dataset_dir)
