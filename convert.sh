@@ -1,21 +1,34 @@
 #!/bin/sh
 
 dataset_dir=$1
+method=$(echo $2 | tr '[:lower:]' '[:upper:]')
 workspace_dir=$dataset_dir/distorted
 
 mkdir -p $workspace_dir
 
-# colmap automatic_reconstructor
-colmap automatic_reconstructor \
-    --workspace_path $workspace_dir \
-    --image_path $dataset_dir/input/ \
-    --data_type video \
-    --quality high \
-    --camera_model OPENCV \
-    --single_camera 1 \
-    --sparse 1 \
-    --dense 0 \
-    --use_gpu 1
+if [ -z "$2" ]; then
+    method="HLOC"
+fi
+
+if [ $method = "HLOC" ]; then
+    # hloc export_poses
+    python3 convert_hloc.py --dataset_dir $dataset_dir
+elif [ $method = "COLMAP" ]; then
+    # colmap automatic_reconstructor
+    colmap automatic_reconstructor \
+        --workspace_path $workspace_dir \
+        --image_path $dataset_dir/input/ \
+        --data_type video \
+        --quality high \
+        --camera_model OPENCV \
+        --single_camera 1 \
+        --sparse 1 \
+        --dense 0 \
+        --use_gpu 1
+else
+    echo "Invalid method '$2'"
+    exit 1
+fi
 
 # colmap image_undistorter
 colmap image_undistorter \
@@ -25,7 +38,7 @@ colmap image_undistorter \
     --output_type COLMAP
 
 # move sparse model files
-mkdir $dataset_dir/sparse/0
+mkdir -p $dataset_dir/sparse/0
 for file in $dataset_dir/sparse/*; do
     if [ "$(basename "$file")" != "0" ]; then
         mv "$file" "$dataset_dir/sparse/0/"
