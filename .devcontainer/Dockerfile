@@ -129,9 +129,17 @@ RUN apt-get update && \
         libglfw3 \
         libembree-dev \
         libassimp5 \
+        # install python3
         python3 \
-        python3-pip
-
+        python3-pip \
+        # and some dependencies
+        ffmpeg \
+        imagemagick \
+        git \
+        wget \
+        unzip
+    
+RUN python3 -m pip install -U pip setuptools
 RUN python3 -m pip install --no-cache plyfile pillow tqdm
 RUN python3 -m pip install --no-cache \
         torch==${PYTORCH_VERSION} \
@@ -151,20 +159,18 @@ RUN ln -s /usr/local/SIBR_viewers/bin/SIBR_PointBased_app /usr/local/bin/SIBR_Po
     ln -s /usr/local/SIBR_viewers/bin/SIBR_remoteGaussian_app /usr/local/bin/SIBR_remoteGaussian_app && \
     ln -s /usr/local/SIBR_viewers/bin/SIBR_texturedMesh_app /usr/local/bin/SIBR_texturedMesh_app
 
+# Install other dependencies for Gaussian Splatting
 COPY --from=builder /work/gaussian-splatting/submodules/diff-gaussian-rasterization/dist/diff_gaussian_rasterization-0.0.0-cp310-cp310-linux_x86_64.whl ./diff_gaussian_rasterization-0.0.0-cp310-cp310-linux_x86_64.whl
 COPY --from=builder /work/gaussian-splatting/submodules/simple-knn/dist/simple_knn-0.0.0-cp310-cp310-linux_x86_64.whl ./simple_knn-0.0.0-cp310-cp310-linux_x86_64.whl
 RUN python3 -m pip install --no-cache \
     ./diff_gaussian_rasterization-0.0.0-cp310-cp310-linux_x86_64.whl \
     ./simple_knn-0.0.0-cp310-cp310-linux_x86_64.whl
 
-# dependencies for conver.py
-RUN apt install  -y --no-install-recommends --no-install-suggests \
-    ffmpeg \
-    imagemagick \
-    git \
-    wget \
-    unzip
-
-
+# Install Hierarchical-Localization (hloc)
+WORKDIR /usr/local/src
+RUN git clone --recursive https://github.com/cvg/Hierarchical-Localization/ --depth 1
+# RUN cd Hierarchical-Localization/ && git submodule update --init --recursive
+RUN python3 -m pip install --no-cache -e ./Hierarchical-Localization/
+RUN python3 -m pip install --no-cache notebook scikit-learn
 # clean up
 RUN apt clean && rm -rf /var/lib/apt/lists/*
