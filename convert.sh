@@ -7,7 +7,12 @@ workspace_dir=$dataset_dir/distorted
 mkdir -p $workspace_dir
 
 if [ -z "$2" ]; then
-    method="HLOC"
+    # check installed hloc module
+    if python3 -c "import hloc" >/dev/null 2>&1; then
+        method="HLOC"
+    else
+        method="COLMAP"
+    fi
 fi
 
 if [ $method = "HLOC" ]; then
