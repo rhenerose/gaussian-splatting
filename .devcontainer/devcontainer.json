@@ -1,17 +1,17 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/alpine
 {
-	"name": "PyTorch cuda devel",
+	"name": "3DGS runtime",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	// "image": "nvidia/cuda:12.4.1-devel-ubuntu22.04",
 	// "image": "nvidia/cuda:11.8.0-devel-ubuntu22.04",
 	// "image": "pytorch/pytorch:2.3.0-cuda12.1-cudnn8-devel",
 	// "image": "pytorch/pytorch:2.3.0-cuda11.8-cudnn8-devel",
-	// "image": "gaussian-splatting",
-	"build":{
-		"dockerfile": "Dockerfile",
-		"context": "..",
-	},
+	"image": "ghcr.io/rhenerose/gaussian-splatting:runtime",
+	// "build":{
+	// 	"dockerfile": "Dockerfile",
+	// 	"context": "..",
+	// },
 	"runArgs": [
 		"--gpus=all",
 		"--shm-size=1g",
